@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>drew & friends — small games collective</title>
+  <meta name="description" content="Browser games made by friends. Tight loops, real people, no filler." />
+  <meta name="theme-color" content="#F4E4BC" />
+  <style>
+    /* ─────────────────────────────────────────
+       TOKENS
+    ───────────────────────────────────────── */
+    :root {
+      --parchment:      #F4E4BC;
+      --parchment-warm: #EDD8A2;
+      --cream:          #FAF3E0;
+      --ink:            #1C1208;
+      --ink-mid:        #3D2B1A;
+      --ink-light:      #6B4E35;
+      --rust:           #B83020;
+      --gold:           #C9960A;
+      --brass:          #A07820;
+      --burnt:          #D4622A;
+      --teal:           #3D7D7D;
+
+      --rule-color:   rgba(100, 140, 210, 0.10);
+      --margin-color: rgba(184, 48, 32, 0.40);
+      --margin-x:     72px;
+      --rule-h:       32px;
+
+      --serif: Georgia, 'Times New Roman', Times, serif;
+      --mono:  'Courier New', Courier, monospace;
+    }
+
+    /* ─────────────────────────────────────────
+       RESET
+    ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─────────────────────────────────────────
+       BASE
+    ───────────────────────────────────────── */
+    body {
+      font-family: var(--serif);
+      background: var(--parchment);
+      color: var(--ink);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─────────────────────────────────────────
+       PAPER GRAIN — fixed noise layer over everything
+    ───────────────────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9000;
+      opacity: .55;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+    }
+
+    /* ─────────────────────────────────────────
+       RED MARGIN LINE — runs the full height of the page
+    ───────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      left: var(--margin-x);
+      top: 0;
+      bottom: 0;
+      width: 1.5px;
+      background: var(--margin-color);
+      pointer-events: none;
+      z-index: 8000;
+    }
+
+    /* ─────────────────────────────────────────
+       RULED LINES — applied per-section
+    ───────────────────────────────────────── */
+    .ruled {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(var(--rule-h) - 1px),
+        var(--rule-color) calc(var(--rule-h) - 1px),
+        var(--rule-color) var(--rule-h)
+      );
+    }
+
+    /* ─────────────────────────────────────────
+       LAYOUT HELPERS
+    ───────────────────────────────────────── */
+    .wrap {
+      /* Standard section padding — content starts past the margin line */
+      padding: 0 52px 0 calc(var(--margin-x) + 28px);
+    }
+
+    .section-sep {
+      border: none;
+      border-top: 1px solid rgba(28,18,8,.12);
+      /* Full-bleed — the margin line already creates the left boundary visually */
+      margin: 0;
+    }
+
+    /* ─────────────────────────────────────────
+       SECTION LABEL
+    ───────────────────────────────────────── */
+    .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--brass);
+      margin-bottom: 36px;
+    }
+    .label::after {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--brass);
+      opacity: .45;
+    }
+
+    /* ─────────────────────────────────────────
+       NAVIGATION
+    ───────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: var(--parchment);
+      border-bottom: 1px solid rgba(28,18,8,.10);
+      display: flex;
+      align-items: center;
+      padding: 15px 52px 15px 24px;
+      gap: 36px;
+    }
+
+    /* The logo sits in the "margin" gutter, left of the red line */
+    .nav-mark {
+      font-family: var(--mono);
+      font-size: .82rem;
+      font-weight: bold;
+      letter-spacing: .05em;
+      color: var(--ink);
+      text-decoration: none;
+      width: calc(var(--margin-x) + 28px - 24px); /* fill up to content edge */
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      margin-right: auto;
+    }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: .75rem;
+      letter-spacing: .06em;
+      color: var(--ink-light);
+      text-decoration: none;
+    }
+    .nav-links a:hover { color: var(--rust); }
+
+    .nav-cta {
+      font-family: var(--serif);
+      font-size: .82rem;
+      font-weight: bold;
+      color: var(--parchment);
+      background: var(--ink);
+      border: 1.5px solid var(--ink);
+      padding: 7px 18px;
+      text-decoration: none;
+      letter-spacing: .02em;
+      transition: background .12s, border-color .12s;
+    }
+    .nav-cta:hover { background: var(--rust); border-color: var(--rust); }
+
+    /* ─────────────────────────────────────────
+       HERO
+    ───────────────────────────────────────── */
+    .hero {
+      padding-top: 80px;
+      padding-bottom: 88px;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: 0 40px;
+    }
+
+    .hero-text { }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-eyebrow::before { content: '//'; opacity: .7; }
+
+    h1.hero-heading {
+      font-size: clamp(3rem, 6.5vw, 5.6rem);
+      line-height: 1.0;
+      font-weight: bold;
+      letter-spacing: -.028em;
+      color: var(--ink);
+      max-width: 640px;
+      margin-bottom: 24px;
+    }
+
+    h1.hero-heading em {
+      font-style: italic;
+      color: var(--rust);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--ink-mid);
+      max-width: 420px;
+      line-height: 1.65;
+      margin-bottom: 44px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Billy sprite floats in the hero — decorative, not illustrative */
+    .hero-billy {
+      align-self: flex-end;
+      padding-bottom: 0;
+      padding-right: 24px;
+      opacity: .75;
+      /* Spring bounce animation — matches the game's feel */
+      animation: billy-float 2.4s cubic-bezier(.36,.07,.19,.97) infinite;
+      transform-origin: bottom center;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges; /* Firefox fallback */
+      /* Scale up the pixel art */
+      width: 152px;
+      height: auto;
+      flex-shrink: 0;
+      /* Subtle inline margin note style */
+      filter: drop-shadow(2px 2px 0 rgba(184,48,32,.3));
+    }
+
+    @keyframes billy-float {
+      0%   { transform: translateY(0)   scaleY(1.00); }
+      10%  { transform: translateY(-4px) scaleY(1.02); }
+      35%  { transform: translateY(-14px) scaleY(0.97); }
+      50%  { transform: translateY(-14px) scaleY(0.97); }
+      75%  { transform: translateY(-2px)  scaleY(1.03); }
+      88%  { transform: translateY(0)   scaleY(0.98); }
+      100% { transform: translateY(0)   scaleY(1.00); }
+    }
+
+    /* ─────────────────────────────────────────
+       BUTTONS
+    ───────────────────────────────────────── */
+    .btn {
+      display: inline-block;
+      font-family: var(--serif);
+      font-size: .95rem;
+      font-weight: bold;
+      letter-spacing: .02em;
+      text-decoration: none;
+      padding: 11px 26px;
+      cursor: pointer;
+      transition: all .12s;
+      line-height: 1;
+    }
+
+    .btn-solid {
+      background: var(--ink);
+      color: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--rust);
+    }
+    .btn-solid:hover {
+      background: var(--rust);
+      border-color: var(--rust);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid rgba(28,18,8,.4);
+    }
+    .btn-ghost:hover {
+      border-color: var(--rust);
+      color: var(--rust);
+    }
+
+    /* ─────────────────────────────────────────
+       FEATURED GAME
+    ───────────────────────────────────────── */
+    .featured {
+      padding-top: 64px;
+      padding-bottom: 72px;
+    }
+
+    .featured-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 72px;
+      align-items: start;
+    }
+
+    .featured-info { padding-top: 4px; }
+
+    .featured-title {
+      font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+      font-weight: bold;
+      letter-spacing: -.025em;
+      line-height: 1.0;
+      color: var(--ink);
+      margin-bottom: 18px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 22px;
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: .6rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      background: transparent;
+    }
+
+    .tag-live {
+      background: var(--rust);
+      border-color: var(--rust);
+      color: var(--cream);
+    }
+
+    .featured-desc {
+      font-size: .98rem;
+      line-height: 1.72;
+      color: var(--ink-mid);
+      max-width: 460px;
+      margin-bottom: 12px;
+    }
+    .featured-aside {
+      font-size: .84rem;
+      line-height: 1.65;
+      color: var(--ink-light);
+      max-width: 440px;
+      margin-bottom: 36px;
+    }
+
+    /* ─────────────────────────────────────────
+       GAME FRAME
+    ───────────────────────────────────────── */
+    .game-frame-wrap {
+      position: relative;
+    }
+
+    .game-frame {
+      border: 2.5px solid var(--ink);
+      background: var(--ink);
+      position: relative;
+      overflow: hidden;
+      /* Double offset shadow — feels heavy, physical */
+      box-shadow:
+        5px  5px 0 var(--parchment-warm),
+        8px  8px 0 var(--ink);
+      /* Slight tilt — makes it feel placed, not generated */
+      transform: rotate(-0.6deg);
+    }
+
+    .game-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Label bar at base of frame */
+    .game-frame-bar {
+      background: var(--ink);
+      padding: 7px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: none;
+    }
+    .game-frame-bar span {
+      font-family: var(--mono);
+      font-size: .6rem;
+      letter-spacing: .09em;
+      color: rgba(244,228,188,.65);
+      text-transform: uppercase;
+    }
+
+    /* Vertical annotation beside the frame — like a margin note */
+    .frame-note {
+      position: absolute;
+      right: -32px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      transform-origin: center center;
+      font-family: var(--mono);
+      font-size: .58rem;
+      color: var(--brass);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      opacity: .6;
+    }
+
+    /* ─────────────────────────────────────────
+       SHELF / COLLECTION
+    ───────────────────────────────────────── */
+    .shelf {
+      padding-top: 64px;
+      padding-bottom: 72px;
+    }
+
+    .shelf-header {
+      margin-bottom: 52px;
+    }
+    .shelf-header h2 {
+      font-size: 1.65rem;
+      font-weight: bold;
+      letter-spacing: -.015em;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .shelf-header p {
+      font-size: .85rem;
+      color: var(--ink-light);
+    }
+
+    /* Grid: lead card is wider */
+    .shelf-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+      padding-top: 16px; /* space for tape tabs */
+    }
+
+    /* ─────────────────────────────────────────
+       GAME CARDS
+    ───────────────────────────────────────── */
+    .game-card {
+      border: 2px solid var(--ink);
+      background: var(--cream);
+      position: relative;
+      box-shadow: 4px 4px 0 rgba(28,18,8,.18);
+      transition: transform .13s ease, box-shadow .13s ease;
+    }
+    .game-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 rgba(28,18,8,.22);
+    }
+
+    /* Tape tab */
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-1.5deg);
+      width: 42px;
+      height: 16px;
+      background: rgba(201,150,10,.28);
+      border: 1px solid rgba(201,150,10,.5);
+      z-index: 2;
+    }
+    /* Stagger tape angles per card so they don't all match */
+    .shelf-grid > .game-card:nth-child(2)::before { transform: translateX(-50%) rotate(1.2deg); left: 40%; }
+    .shelf-grid > .game-card:nth-child(3)::before { transform: translateX(-50%) rotate(-2deg); left: 55%; }
+
+    /* Lead card: horizontal layout */
+    .game-card.lead {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .game-card.lead::before {
+      left: 30%;
+    }
+
+    .game-card.lead .card-thumb {
+      height: 100%;
+      min-height: 220px;
+      border-bottom: none;
+      border-right: 2px solid var(--ink);
+    }
+
+    /* Coming-soon card */
+    .game-card.tbd {
+      background: transparent;
+      border-style: dashed;
+      border-color: var(--ink-light);
+      border-width: 1.5px;
+      box-shadow: none;
+      opacity: .68;
+    }
+    .game-card.tbd::before { display: none; }
+    .game-card.tbd:hover { transform: none; }
+
+    .card-thumb {
+      width: 100%;
+      overflow: hidden;
+      border-bottom: 2px solid var(--ink);
+    }
+    .card-thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+    .card-thumb-blank {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--parchment-warm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-sketch { width: 56px; height: 56px; opacity: .22; }
+
+    .card-body { padding: 16px 18px 20px; }
+
+    .card-status {
+      font-family: var(--mono);
+      font-size: .58rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--brass);
+      margin-bottom: 5px;
+    }
+    .card-status.live { color: var(--rust); }
+
+    .card-name {
+      font-size: 1.05rem;
+      font-weight: bold;
+      letter-spacing: -.01em;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .card-blurb {
+      font-size: .78rem;
+      line-height: 1.52;
+      color: var(--ink-mid);
+      margin-bottom: 14px;
+    }
+
+    .card-link {
+      font-size: .8rem;
+      font-weight: bold;
+      color: var(--rust);
+      text-decoration: none;
+      letter-spacing: .03em;
+    }
+    .card-link:hover { text-decoration: underline; }
+
+    .card-stamp {
+      font-family: var(--mono);
+      font-size: .58rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      border: 1px solid var(--ink-light);
+      color: var(--ink-light);
+      padding: 2px 8px;
+      display: inline-block;
+      opacity: .6;
+    }
+
+    /* ─────────────────────────────────────────
+       ABOUT
+    ───────────────────────────────────────── */
+    .about {
+      padding-top: 64px;
+      padding-bottom: 72px;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 56px;
+      align-items: start;
+      max-width: 800px;
+    }
+
+    .about-aside-label {
+      font-family: var(--mono);
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--brass);
+      padding-top: 5px;
+    }
+
+    .about-body h3 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: -.012em;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+    .about-body p {
+      font-size: .95rem;
+      line-height: 1.78;
+      color: var(--ink-mid);
+    }
+    .about-body p + p { margin-top: 12px; }
+
+    /* ─────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid rgba(28,18,8,.12);
+      padding: 26px 52px 26px calc(var(--margin-x) + 28px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-id {
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--ink-light);
+      letter-spacing: .06em;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--ink-light);
+      text-decoration: none;
+      letter-spacing: .06em;
+    }
+    .footer-links a:hover { color: var(--rust); }
+
+    /* ─────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────── */
+    @media (max-width: 940px) {
+      :root { --margin-x: 40px; }
+
+      .hero { grid-template-columns: 1fr; }
+      .hero-billy { display: none; }
+
+      .featured-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .featured-visual { order: -1; }
+      .frame-note { display: none; }
+
+      .shelf-grid { grid-template-columns: 1fr 1fr; }
+      .game-card.lead {
+        grid-column: span 2;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      :root { --margin-x: 0px; }
+
+      body::before { display: none; } /* hide margin line on small screens */
+
+      nav,
+      footer { padding-left: 24px; padding-right: 24px; }
+
+      .wrap { padding-left: 24px; padding-right: 24px; }
+      .section-sep { margin-left: 24px; margin-right: 24px; }
+
+      .nav-mark { width: auto; }
+      .nav-links { display: none; }
+
+      .hero { padding-top: 52px; padding-bottom: 60px; }
+
+      .shelf-grid { grid-template-columns: 1fr; }
+      .game-card.lead {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+        display: block;
+      }
+      .game-card.lead .card-thumb {
+        height: 180px;
+        border-right: none;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+      .btn { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════
+       NAV
+  ══════════════════════════════════ -->
+  <nav>
+    <a href="#" class="nav-mark">drew & friends</a>
+    <div class="nav-links">
+      <a href="#games">games</a>
+      <a href="#about">about</a>
+    </div>
+    <a href="https://billy-bouncer.vercel.app" class="nav-cta" target="_blank" rel="noopener">Play now</a>
+  </nav>
+
+  <!-- ══════════════════════════════════
+       HERO
+  ══════════════════════════════════ -->
+  <section class="hero wrap ruled" aria-label="Introduction">
+    <div class="hero-text">
+      <p class="hero-eyebrow">a small games collective</p>
+      <h1 class="hero-heading">
+        Small games.<br><em>Real people.</em>
+      </h1>
+      <p class="hero-sub">
+        Browser games made by a group of friends. Nothing dressed up to look bigger than it is — just tight loops, odd ideas, and things we'd actually want to play ourselves.
+      </p>
+      <div class="hero-actions">
+        <a href="https://billy-bouncer.vercel.app" class="btn btn-solid" target="_blank" rel="noopener">
+          Play Billy Bouncer
+        </a>
+        <a href="#games" class="btn btn-ghost">Browse the shelf →</a>
+      </div>
+    </div>
+
+    <!-- Billy sprite — subtle, bouncing, sitting in the right margin -->
+    <img
+      src="assets/billy-idle.png"
+      class="hero-billy"
+      alt=""
+      aria-hidden="true"
+      width="76"
+      height="76"
+    />
+  </section>
+
+  <hr class="section-sep" />
+
+  <!-- ══════════════════════════════════
+       FEATURED GAME
+  ══════════════════════════════════ -->
+  <section class="featured wrap" id="featured" aria-labelledby="featured-title">
+    <div class="label">Featured game</div>
+    <div class="featured-grid">
+
+      <div class="featured-info">
+        <h2 class="featured-title" id="featured-title">Billy Bouncer</h2>
+
+        <div class="tag-row">
+          <span class="tag tag-live">● Live now</span>
+          <span class="tag">Browser game</span>
+          <span class="tag">Score chaser</span>
+          <span class="tag">Free</span>
+        </div>
+
+        <p class="featured-desc">
+          A cowboy who bounces. Platforms that crumble, snap, and explode. Enemies that bite back. The floor is not your friend and the sky is the whole point.
+        </p>
+        <p class="featured-aside">
+          Scores go on the leaderboard. Runs in any browser. Takes about 30 seconds to pick up and considerably longer to put down.
+        </p>
+
+        <a href="https://billy-bouncer.vercel.app" class="btn btn-solid" target="_blank" rel="noopener">
+          Play now →
+        </a>
+      </div>
+
+      <div class="featured-visual game-frame-wrap">
+        <div class="game-frame">
+          <img
+            src="assets/billy-bouncer-gameplay.png"
+            alt="Billy Bouncer gameplay screenshot: a pixel-art cowboy stands on notebook-paper platforms in a warm parchment-toned world."
+            width="480"
+            height="800"
+            loading="lazy"
+          />
+          <div class="game-frame-bar">
+            <span>Billy Bouncer · 2025</span>
+            <span>browser · free</span>
+          </div>
+        </div>
+        <div class="frame-note" aria-hidden="true">Current build · live</div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="section-sep" />
+
+  <!-- ══════════════════════════════════
+       SHELF / COLLECTION
+  ══════════════════════════════════ -->
+  <section class="shelf wrap" id="games" aria-labelledby="shelf-title">
+    <div class="shelf-header">
+      <div class="label">The collection</div>
+      <h2 id="shelf-title">Everything on the shelf</h2>
+      <p>In order of arrival.</p>
+    </div>
+
+    <div class="shelf-grid">
+
+      <!-- ── Live: Billy Bouncer (lead card, horizontal) ── -->
+      <article class="game-card lead">
+        <div class="card-thumb">
+          <img
+            src="assets/billy-bouncer-gameplay.png"
+            alt="Billy Bouncer — western vertical jumper"
+            loading="lazy"
+          />
+        </div>
+        <div class="card-body">
+          <div class="card-status live">● Live now</div>
+          <div class="card-name">Billy Bouncer</div>
+          <p class="card-blurb">
+            Western arcade jumper. Climb, shoot, try not to fall. Works exactly as described, harder than it looks.
+          </p>
+          <a href="https://billy-bouncer.vercel.app" class="card-link" target="_blank" rel="noopener">
+            Play now →
+          </a>
+        </div>
+      </article>
+
+      <!-- ── Coming soon 1 ── -->
+      <article class="game-card tbd">
+        <div class="card-thumb">
+          <div class="card-thumb-blank">
+            <svg class="card-sketch" viewBox="0 0 80 80" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="8" width="64" height="64" rx="2" stroke="#1C1208" stroke-width="1.5" stroke-dasharray="5 3"/>
+              <circle cx="40" cy="28" r="9" stroke="#1C1208" stroke-width="1.2"/>
+              <line x1="18" y1="48" x2="62" y2="48" stroke="#1C1208" stroke-width="1.2"/>
+              <line x1="18" y1="58" x2="52" y2="58" stroke="#1C1208" stroke-width="1.2"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-status">In progress</div>
+          <div class="card-name">Untitled No. 2</div>
+          <p class="card-blurb">Something's in the works. Not ready to talk about it yet.</p>
+          <span class="card-stamp">In progress</span>
+        </div>
+      </article>
+
+      <!-- ── Coming soon 2 ── -->
+      <article class="game-card tbd">
+        <div class="card-thumb">
+          <div class="card-thumb-blank">
+            <svg class="card-sketch" viewBox="0 0 80 80" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="8" width="64" height="64" rx="2" stroke="#1C1208" stroke-width="1.5" stroke-dasharray="5 3"/>
+              <line x1="18" y1="36" x2="62" y2="36" stroke="#1C1208" stroke-width="1.2"/>
+              <line x1="18" y1="46" x2="55" y2="46" stroke="#1C1208" stroke-width="1.2"/>
+              <line x1="18" y1="56" x2="44" y2="56" stroke="#1C1208" stroke-width="1.2"/>
+              <line x1="18" y1="26" x2="40" y2="26" stroke="#1C1208" stroke-width="1.2"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-status">On the board</div>
+          <div class="card-name">TBD</div>
+          <p class="card-blurb">Has a name in our heads. Gets a real one when it's ready.</p>
+          <span class="card-stamp">Eventually</span>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <hr class="section-sep" />
+
+  <!-- ══════════════════════════════════
+       ABOUT
+  ══════════════════════════════════ -->
+  <section class="about wrap" id="about" aria-labelledby="about-title">
+    <div class="about-grid">
+      <div>
+        <p class="about-aside-label">About</p>
+      </div>
+      <div class="about-body">
+        <h3 id="about-title">Just some friends making games.</h3>
+        <p>
+          Drew & Friends is not a studio. We don't have a roadmap or a pitch deck. We're a loose group of people who enjoy building small, playable things and putting them on the internet for anyone who wants to try them.
+        </p>
+        <p>
+          When a game is done, it goes on the shelf. That's the whole plan.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       FOOTER
+  ══════════════════════════════════ -->
+  <footer>
+    <span class="footer-id">drew &amp; friends · <span id="yr"></span></span>
+    <nav class="footer-links" aria-label="Footer links">
+      <a href="#">github</a>
+      <a href="mailto:azmionjang@gmail.com">contact</a>
+    </nav>
+  </footer>
+
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
