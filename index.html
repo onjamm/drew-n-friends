@@ -7,9 +7,7 @@
   <meta name="description" content="Browser games made by friends. Tight loops, real people, no filler." />
   <meta name="theme-color" content="#F4E4BC" />
   <style>
-    /* ─────────────────────────────────────────
-       TOKENS
-    ───────────────────────────────────────── */
+    /* TOKENS */
     :root {
       --parchment:      #F4E4BC;
       --parchment-warm: #EDD8A2;
@@ -32,15 +30,11 @@
       --mono:  'Courier New', Courier, monospace;
     }
 
-    /* ─────────────────────────────────────────
-       RESET
-    ───────────────────────────────────────── */
+    /* RESET */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
 
-    /* ─────────────────────────────────────────
-       BASE
-    ───────────────────────────────────────── */
+    /* BASE */
     body {
       font-family: var(--serif);
       background: var(--parchment);
@@ -49,9 +43,7 @@
       overflow-x: hidden;
     }
 
-    /* ─────────────────────────────────────────
-       PAPER GRAIN — fixed noise layer over everything
-    ───────────────────────────────────────── */
+    /* PAPER GRAIN — fixed noise layer over everything */
     body::after {
       content: '';
       position: fixed;
@@ -62,9 +54,7 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
     }
 
-    /* ─────────────────────────────────────────
-       RED MARGIN LINE — runs the full height of the page
-    ───────────────────────────────────────── */
+    /* RED MARGIN LINE — runs the full height of the page */
     body::before {
       content: '';
       position: fixed;
@@ -77,9 +67,7 @@
       z-index: 8000;
     }
 
-    /* ─────────────────────────────────────────
-       RULED LINES — applied per-section
-    ───────────────────────────────────────── */
+    /* RULED LINES — applied per-section */
     .ruled {
       background-image: repeating-linear-gradient(
         to bottom,
@@ -90,9 +78,7 @@
       );
     }
 
-    /* ─────────────────────────────────────────
-       LAYOUT HELPERS
-    ───────────────────────────────────────── */
+    /* LAYOUT HELPERS */
     .wrap {
       /* Standard section padding — content starts past the margin line */
       padding: 0 52px 0 calc(var(--margin-x) + 28px);
@@ -105,9 +91,7 @@
       margin: 0;
     }
 
-    /* ─────────────────────────────────────────
-       SECTION LABEL
-    ───────────────────────────────────────── */
+    /* SECTION LABEL */
     .label {
       display: inline-flex;
       align-items: center;
@@ -128,9 +112,7 @@
       opacity: .45;
     }
 
-    /* ─────────────────────────────────────────
-       NAVIGATION
-    ───────────────────────────────────────── */
+    /* NAVIGATION */
     nav {
       position: sticky;
       top: 0;
@@ -183,9 +165,7 @@
     }
     .nav-cta:hover { background: var(--rust); border-color: var(--rust); }
 
-    /* ─────────────────────────────────────────
-       HERO
-    ───────────────────────────────────────── */
+    /* HERO */
     .hero {
       padding-top: 80px;
       padding-bottom: 88px;
@@ -195,8 +175,6 @@
       align-items: start;
       gap: 0 40px;
     }
-
-    .hero-text { }
 
     .hero-eyebrow {
       font-family: var(--mono);
@@ -270,9 +248,7 @@
       100% { transform: translateY(0)   scaleY(1.00); }
     }
 
-    /* ─────────────────────────────────────────
-       BUTTONS
-    ───────────────────────────────────────── */
+    /* BUTTONS */
     .btn {
       display: inline-block;
       font-family: var(--serif);
@@ -282,7 +258,7 @@
       text-decoration: none;
       padding: 11px 26px;
       cursor: pointer;
-      transition: all .12s;
+      transition: background .12s, border-color .12s, color .12s, box-shadow .12s;
       line-height: 1;
     }
 
@@ -308,9 +284,7 @@
       color: var(--rust);
     }
 
-    /* ─────────────────────────────────────────
-       FEATURED GAME
-    ───────────────────────────────────────── */
+    /* FEATURED GAME */
     .featured {
       padding-top: 64px;
       padding-bottom: 72px;
@@ -373,9 +347,7 @@
       margin-bottom: 36px;
     }
 
-    /* ─────────────────────────────────────────
-       GAME FRAME
-    ───────────────────────────────────────── */
+    /* GAME FRAME */
     .game-frame-wrap {
       position: relative;
     }
@@ -432,9 +404,7 @@
       opacity: .6;
     }
 
-    /* ─────────────────────────────────────────
-       SHELF / COLLECTION
-    ───────────────────────────────────────── */
+    /* SHELF / COLLECTION */
     .shelf {
       padding-top: 64px;
       padding-bottom: 72px;
@@ -464,9 +434,7 @@
       padding-top: 16px; /* space for tape tabs */
     }
 
-    /* ─────────────────────────────────────────
-       GAME CARDS
-    ───────────────────────────────────────── */
+    /* GAME CARDS */
     .game-card {
       border: 2px solid var(--ink);
       background: var(--cream);
@@ -594,29 +562,14 @@
       opacity: .6;
     }
 
-    /* ─────────────────────────────────────────
-       ABOUT
-    ───────────────────────────────────────── */
+    /* ABOUT */
     .about {
       padding-top: 64px;
       padding-bottom: 72px;
     }
 
-    .about-grid {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 56px;
-      align-items: start;
-      max-width: 800px;
-    }
-
-    .about-aside-label {
-      font-family: var(--mono);
-      font-size: .65rem;
-      letter-spacing: .2em;
-      text-transform: uppercase;
-      color: var(--brass);
-      padding-top: 5px;
+    .about-body {
+      max-width: 640px;
     }
 
     .about-body h3 {
@@ -633,9 +586,7 @@
     }
     .about-body p + p { margin-top: 12px; }
 
-    /* ─────────────────────────────────────────
-       FOOTER
-    ───────────────────────────────────────── */
+    /* FOOTER */
     footer {
       border-top: 1px solid rgba(28,18,8,.12);
       padding: 26px 52px 26px calc(var(--margin-x) + 28px);
@@ -666,9 +617,7 @@
     }
     .footer-links a:hover { color: var(--rust); }
 
-    /* ─────────────────────────────────────────
-       RESPONSIVE
-    ───────────────────────────────────────── */
+    /* RESPONSIVE */
     @media (max-width: 940px) {
       :root { --margin-x: 40px; }
 
@@ -688,10 +637,6 @@
         grid-template-columns: 1fr 1fr;
       }
 
-      .about-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
     }
 
     @media (max-width: 600px) {
@@ -795,7 +740,7 @@
           A cowboy who bounces. Platforms that crumble, snap, and explode. Enemies that bite back. The floor is not your friend and the sky is the whole point.
         </p>
         <p class="featured-aside">
-          Scores go on the leaderboard. Runs in any browser. Takes about 30 seconds to pick up and considerably longer to put down.
+          Scores go on the leaderboard. Takes about 30 seconds to pick up and considerably longer to put down.
         </p>
 
         <a href="https://billy-bouncer.vercel.app" class="btn btn-solid" target="_blank" rel="noopener">
@@ -874,7 +819,6 @@
           <div class="card-status">In progress</div>
           <div class="card-name">Untitled No. 2</div>
           <p class="card-blurb">Something's in the works. Not ready to talk about it yet.</p>
-          <span class="card-stamp">In progress</span>
         </div>
       </article>
 
@@ -908,19 +852,15 @@
        ABOUT
   ══════════════════════════════════ -->
   <section class="about wrap" id="about" aria-labelledby="about-title">
-    <div class="about-grid">
-      <div>
-        <p class="about-aside-label">About</p>
-      </div>
-      <div class="about-body">
-        <h3 id="about-title">Just some friends making games.</h3>
-        <p>
-          Drew & Friends is not a studio. We don't have a roadmap or a pitch deck. We're a loose group of people who enjoy building small, playable things and putting them on the internet for anyone who wants to try them.
-        </p>
-        <p>
-          When a game is done, it goes on the shelf. That's the whole plan.
-        </p>
-      </div>
+    <div class="label">About</div>
+    <div class="about-body">
+      <h3 id="about-title">Just some friends making games.</h3>
+      <p>
+        Drew & Friends is not a studio. We don't have a roadmap or a pitch deck. We're a loose group of people who enjoy building small, playable things and putting them on the internet for anyone who wants to try them.
+      </p>
+      <p>
+        When a game is done, it goes on the shelf. That's the whole plan.
+      </p>
     </div>
   </section>
 
